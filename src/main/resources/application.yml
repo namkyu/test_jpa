@@ -8,10 +8,6 @@ debug: false
 # spring
 # =================================
 spring:
-  h2:
-    console:
-      enabled: false
-      path: /h2-console
 
   datasource:
     initialize: true
