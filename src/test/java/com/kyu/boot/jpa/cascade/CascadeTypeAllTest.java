@@ -307,6 +307,7 @@ class Account {
     @OneToMany(fetch = FetchType.EAGER, mappedBy = "account", cascade = CascadeType.ALL)
     private List<AccountPhone> phones = new ArrayList<>();
 
+    // orphanRemoval : addressList 컬렉션에서 AccountAddress 객체가 제거되는 경우 DB에서도 삭제하라는 의미
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<AccountAddress> addressList = new ArrayList<>();
 
