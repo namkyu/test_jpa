@@ -237,6 +237,7 @@ public class CascadeTypeAllTest {
  */
 @Data
 @Entity
+@Access(AccessType.FIELD)
 @Table(name = "TEST_CASCADE_MEMBER")
 class Member {
 
