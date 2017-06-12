@@ -41,9 +41,9 @@ public class PersistenceContextTest {
         em.flush();
         em.clear();
 
-        // 엔티티 비교
-        PMember entityPMember1 = em.find(PMember.class, 1);
-        PMember entityPMember2 = em.find(PMember.class, 1);
+        // 트랜잭션이 같이면 같은 영속성 컨텍스트를 사용한다.
+        PMember entityPMember1 = em.find(PMember.class, 1); // DB에서 PMember 조회 후 영속성 컨텍스트에 저장
+        PMember entityPMember2 = em.find(PMember.class, 1); // 영속성 컨텍스트에 저장되어 있는 PMember 엔티티 리턴
         assertThat(entityPMember1, is(sameInstance(entityPMember2)));
     }
 }
