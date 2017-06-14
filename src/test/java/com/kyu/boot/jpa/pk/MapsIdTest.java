@@ -1,4 +1,4 @@
-package com.kyu.boot.jpa.others;
+package com.kyu.boot.jpa.pk;
 
 import lombok.Data;
 import lombok.ToString;
