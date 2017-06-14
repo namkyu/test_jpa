@@ -94,13 +94,11 @@ class Emp {
     private EmpId empId;
 
     private String phone;
-
 }
 
 @Data
 @Embeddable
 class EmpId implements Serializable {
-
     private int empNo;
     private String empName;
 }
@@ -127,6 +125,12 @@ class OrderProduct {
     private int amount;
 }
 
+/**
+ * 1. The primary key class must be public and must have a public no-arg constructor.
+ * 2. The primary key class must be serializable.
+ * 3. The primary key class must define equals and hashCode methods
+ * 4. 엔티티의 필드명과 같아야 한다. OrderProduct 엔티티의 식별자 orderId 필드 이름이 OrderProductPK의 orderId 필드 이름과 같아야 함.
+ */
 @Data
 class OrderProductPK implements Serializable {
     private int orderId;
