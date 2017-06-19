@@ -75,10 +75,49 @@ public class CompositePKTest {
         assertThat(2, is(orderProduct.getProductId()));
         assertThat(1000, is(orderProduct.getAmount()));
     }
+
+    @Test
+    @Transactional
+    public void 식별관계() {
+
+        HomeAddressId id = new HomeAddressId();
+        id.setMemberId(1);
+        id.setId(1);
+
+        HomeAddress homeAddress = new HomeAddress();
+        homeAddress.setHomeAddressId(id);
+
+        Member member = new Member();
+        member.setMemberId(1);
+        member.setName("nklee");
+        member.setHomeAddress(homeAddress);
+
+        em.persist(member);
+        em.flush();
+        em.clear();
+
+        // 초기 검증
+        HomeAddress entityHomeAddress = em.find(HomeAddress.class, id);
+        assertThat(1, is(entityHomeAddress.getHomeAddressId().getId()));
+        assertThat(1, is(entityHomeAddress.getHomeAddressId().getMemberId()));
+
+        // Member 엔티티의 name 변경
+        entityHomeAddress.getMember().setName("nklee2");
+        em.flush();
+        em.clear();
+
+        // Member 엔티티 name 변경 여부 검증
+        Member entityMember = em.find(Member.class, 1);
+        assertThat(1, is(entityMember.getMemberId()));
+        assertThat("nklee2", is(entityMember.getName()));
+    }
 }
 
 
 /**
+ * -----------------------------------------------------------
+ * 테이블 구조
+ * -----------------------------------------------------------
  * create table emp (
  * emp_name varchar(255) not null,
  * emp_no integer not null,
@@ -99,12 +138,19 @@ class Emp {
 @Data
 @Embeddable
 class EmpId implements Serializable {
+
+    @Column(name = "EMP_NO")
     private int empNo;
+
+    @Column(name = "EMP_NAME")
     private String empName;
 }
 
 
 /**
+ * -----------------------------------------------------------
+ * 테이블 구조
+ * -----------------------------------------------------------
  * create table order_product (
  * order_id integer not null,
  * product_id integer not null,
@@ -135,4 +181,72 @@ class OrderProduct {
 class OrderProductPK implements Serializable {
     private int orderId;
     private int productId;
+}
+
+
+/**
+ * -----------------------------------------------------------
+ * 테이블 구조
+ * -----------------------------------------------------------
+ * create table composite_pk_member (
+ * member_id integer not null,
+ * primary key (member_id)
+ * )
+ * <p>
+ * create table composite_pk_home_address (
+ * home_address_id integer not null,
+ * member_id integer not null,
+ * primary key (home_address_id, member_id)
+ * )
+ * <p>
+ * alter table composite_pk_home_address
+ * add constraint FK6rodm0s8976kjct91uw5gye8q
+ * foreign key (member_id)
+ * references composite_pk_member
+ */
+@Data
+@Table(name = "COMPOSITE_PK_MEMBER")
+@Entity
+class Member {
+
+    @Id
+    @Column(name = "MEMBER_ID")
+    private int memberId;
+
+    @Column(name = "MEMBER_NAME")
+    private String name;
+
+    @OneToOne(cascade = CascadeType.PERSIST, mappedBy = "member")
+    private HomeAddress homeAddress;
+
+    public void setHomeAddress(HomeAddress homeAddress) {
+        this.homeAddress = homeAddress;
+        homeAddress.setMember(this);
+    }
+}
+
+
+@Data
+@Table(name = "COMPOSITE_PK_HOME_ADDRESS")
+@Entity
+class HomeAddress {
+
+    @EmbeddedId
+    private HomeAddressId homeAddressId;
+
+    @OneToOne
+    @JoinColumn(name = "MEMBER_ID", insertable = false, updatable = false) // MEMBER_ID 수정 및 저장 불가
+    private Member member;
+
+}
+
+@Data
+@Embeddable
+class HomeAddressId implements Serializable {
+
+    @Column(name = "HOME_ADDRESS_ID")
+    private int id;
+
+    @Column(name = "MEMBER_ID")
+    private int memberId;
 }
