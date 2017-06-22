@@ -24,7 +24,7 @@ import static org.junit.Assert.assertThat;
 @SpringBootTest
 public class EntityManagerTest {
 
-    @PersistenceContext
+    @PersistenceContext(type = PersistenceContextType.TRANSACTION)
     private EntityManager em;
 
     @Test

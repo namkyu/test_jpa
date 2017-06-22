@@ -101,12 +101,12 @@ public class CompositePKTest {
         assertThat(1, is(entityHomeAddress.getHomeAddressId().getId()));
         assertThat(1, is(entityHomeAddress.getHomeAddressId().getMemberId()));
 
-        // Member 엔티티의 name 변경
+        // SpringMember 엔티티의 name 변경
         entityHomeAddress.getMember().setName("nklee2");
         em.flush();
         em.clear();
 
-        // Member 엔티티 name 변경 여부 검증
+        // SpringMember 엔티티 name 변경 여부 검증
         Member entityMember = em.find(Member.class, 1);
         assertThat(1, is(entityMember.getMemberId()));
         assertThat("nklee2", is(entityMember.getName()));

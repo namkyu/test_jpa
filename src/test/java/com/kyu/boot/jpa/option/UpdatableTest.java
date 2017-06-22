@@ -67,5 +67,6 @@ class Hotel {
     @Column(name = "NAME", updatable = false)
     private String name;
 
+    @Column(name = "AGE")
     private int age;
 }
