@@ -1,6 +1,7 @@
 package com.kyu.boot.jpa.springdata;
 
-import com.kyu.boot.jpa.springdata.repository.MemberRepository;
+import com.kyu.boot.jpa.springdata.entity.SpringMember;
+import com.kyu.boot.jpa.springdata.repo.MemberRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;

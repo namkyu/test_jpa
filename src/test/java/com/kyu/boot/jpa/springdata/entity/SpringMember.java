@@ -1,4 +1,4 @@
-package com.kyu.boot.jpa.springdata;
+package com.kyu.boot.jpa.springdata.entity;
 
 import lombok.Data;
 
@@ -8,7 +8,7 @@ import javax.persistence.Table;
 
 /**
  * @Project : test_project
- * @Date : 2017-06-22
+ * @Date : 2017-06-23
  * @Author : nklee
  * @Description :
  */
