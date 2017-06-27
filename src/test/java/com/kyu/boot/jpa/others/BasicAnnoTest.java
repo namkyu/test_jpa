@@ -12,14 +12,14 @@ import javax.transaction.Transactional;
 
 /**
  * @Project : test_project
- * @Date : 2017-06-20
+ * @Date : 2017-06-26
  * @Author : nklee
  * @Description :
  */
 @Slf4j
 @RunWith(SpringRunner.class)
 @SpringBootTest
-public class TransientTest {
+public class BasicAnnoTest {
 
     @PersistenceContext
     private EntityManager em;
@@ -27,35 +27,36 @@ public class TransientTest {
     @Test
     @Transactional
     public void test() {
-        TransientMember member = new TransientMember();
+        BasicAnnoMember member = new BasicAnnoMember();
         member.setId(1);
         member.setName("nklee");
-        member.setPhonNumber("010-1111-1111");
+        member.setPhoneNumber("010-1111-1111");
 
         em.persist(member);
         em.flush();
         em.clear();
+
+        System.out.println("--------------------------------");
+        em.find(BasicAnnoMember.class, 1);
+        System.out.println("--------------------------------");
     }
+
 }
 
-/**
- * create table transient_member (
- * id integer not null,
- * name varchar(255),
- * primary key (id)
- * )
- */
 @Data
 @Entity
-@Table(name = "TRANSIENT_MEMBER")
-class TransientMember {
+@Table(name = "BASIC_ANNO_MEMBER")
+class BasicAnnoMember {
 
     @Id
+    @Column(name = "MEMBER_ID")
     private int id;
 
+    @Basic(fetch = FetchType.EAGER)
     private String name;
 
-    // 필드를 매핑하지 않을 때 사용 (DB에 저장하지도 않고 조회 하지도 않음)
-    @Transient
-    private String phonNumber;
+    // The LAZY strategy is a hint to the persistence provider runtime
+    @Basic(fetch = FetchType.LAZY)
+    private String phoneNumber;
+
 }

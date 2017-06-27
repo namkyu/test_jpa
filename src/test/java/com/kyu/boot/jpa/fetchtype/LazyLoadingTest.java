@@ -139,6 +139,7 @@ public class LazyLoadingTest {
         assertThat(phoneList.getClass(), sameInstance(PersistentBag.class));
 
         // 엔티티 초기화
+        System.out.println("init entity");
         phoneList.get(0).getId();
 
         // 엔티티 초기화 되어 있음
