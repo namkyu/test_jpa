@@ -1,7 +1,6 @@
 package com.kyu.boot.jpa.fetchtype;
 
-import lombok.Data;
-import lombok.ToString;
+import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.hamcrest.core.StringContains;
 import org.hibernate.collection.internal.PersistentBag;
@@ -71,14 +70,10 @@ public class LazyLoadingTest {
         LMember member = new LMember();
         member.setId(1);
 
-        LPhone lPhone = new LPhone();
-        lPhone.setId(1);
-        lPhone.setNumber("010-1111-1111");
+        LPhone lPhone = new LPhone(1, "010-1111-1111");
         lPhone.setLMember(member);
 
-        LPhone lPhone1 = new LPhone();
-        lPhone1.setId(2);
-        lPhone1.setNumber("010-2222-2222");
+        LPhone lPhone1 = new LPhone(2, "010-2222-2222");
         lPhone1.setLMember(member);
 
         em.persist(lPhone);
@@ -107,14 +102,10 @@ public class LazyLoadingTest {
         LMember member = new LMember();
         member.setId(1);
 
-        LPhone lPhone = new LPhone();
-        lPhone.setId(1);
-        lPhone.setNumber("010-1111-1111");
+        LPhone lPhone = new LPhone(1, "010-1111-1111");
         member.addPhone(lPhone);
 
-        LPhone lPhone1 = new LPhone();
-        lPhone1.setId(2);
-        lPhone1.setNumber("010-2222-2222");
+        LPhone lPhone1 = new LPhone(2, "010-2222-2222");
         member.addPhone(lPhone1);
 
         // 영속 상태 전 phoneList 객체는 ArrayList 타입이다.
@@ -182,7 +173,10 @@ class LHomeAddress {
     private LMember lMember;
 }
 
-@Data
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
 @Entity
 class LPhone {
 
@@ -195,4 +189,9 @@ class LPhone {
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
     private LMember lMember;
+
+    public LPhone(int id, String number) {
+        this.number = number;
+        this.id = id;
+    }
 }

@@ -1,6 +1,7 @@
 package com.kyu.boot.jpa.others;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -43,7 +44,8 @@ public class BasicAnnoTest {
 
 }
 
-@Data
+@Getter
+@Setter
 @Entity
 @Table(name = "BASIC_ANNO_MEMBER")
 class BasicAnnoMember {

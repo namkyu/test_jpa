@@ -16,6 +16,7 @@ import javax.transaction.Transactional;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 
 /**
@@ -27,12 +28,12 @@ import static org.junit.Assert.assertThat;
 @Slf4j
 @RunWith(SpringRunner.class)
 @SpringBootTest
-public class QueryDSL_SpringData_Test extends QueryDslRepositorySupport {
+public class QueryDSLTest extends QueryDslRepositorySupport {
 
     @PersistenceContext
     private EntityManager em;
 
-    public QueryDSL_SpringData_Test() {
+    public QueryDSLTest() {
         super(DslMember.class);
     }
 
@@ -79,6 +80,17 @@ public class QueryDSL_SpringData_Test extends QueryDslRepositorySupport {
 
         JPQLQuery jpqlQuery = from(member);
         jpqlQuery.where(member.homeAddress.id.eq(1));
+        List<DslMember> result = jpqlQuery.fetch();
+        assertThat(1, is(result.size()));
+    }
+
+    @Test
+    @Transactional
+    public void Where_리스트형_다른테이블조건() {
+        QDslMember member = QDslMember.dslMember;
+
+        JPQLQuery jpqlQuery = from(member);
+        jpqlQuery.where(member.phoneList.any().id.eq(1));
         List<DslMember> result = jpqlQuery.fetch();
         assertThat(1, is(result.size()));
     }
@@ -159,5 +171,38 @@ public class QueryDSL_SpringData_Test extends QueryDslRepositorySupport {
 
         List<DslMember> result = jpqlQuery.fetch();
         assertThat(2, is(result.size()));
+    }
+
+    @Test
+    @Transactional
+    public void 업데이트() {
+        DslPhone phoneEntity = em.find(DslPhone.class, 2);
+        assertThat("010-2222-2222", is(phoneEntity.getNumber()));
+
+        // 엔티티 매니저 flush 하지 않아도 아래 구문 실행 시 DB 업데이트 한다. (영속성 컨텍스트에 있는 엔티티는 수정되지 않는다.)
+        System.out.println("---------------------------------------------------------");
+        QDslPhone phone = QDslPhone.dslPhone;
+        update(phone).where(phone.id.eq(2))
+                .set(phone.number, "010-3333-3333")
+                .execute();
+        System.out.println("---------------------------------------------------------");
+
+        // 영속성 컨텍스트에 이미 phone 엔티티가 초기화되어 있어 변경되지 않은 핸드폰 번호가 출력된다.
+        phoneEntity = em.find(DslPhone.class, 2);
+        assertThat("010-2222-2222", is(phoneEntity.getNumber()));
+
+        em.clear(); // 영속성 컨텍스트 초기화
+        phoneEntity = em.find(DslPhone.class, 2); // phone 엔티티 초기화 진행 (변경된 폰번호가 출력된다.)
+        assertThat("010-3333-3333", is(phoneEntity.getNumber()));
+    }
+
+    @Test
+    @Transactional
+    public void 삭제() {
+        QDslPhone phone = QDslPhone.dslPhone;
+        delete(phone).where(phone.id.eq(2)).execute();
+
+        DslPhone phoneEntity = em.find(DslPhone.class, 2);
+        assertNull(phoneEntity);
     }
 }
