@@ -21,3 +21,5 @@ spring:
         show_sql: true
         format_sql: true
         ddl_auto: none
+        jdbc:
+          batch_size: 20
