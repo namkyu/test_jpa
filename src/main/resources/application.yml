@@ -23,3 +23,12 @@ spring:
         ddl_auto: none
         jdbc:
           batch_size: 20
+
+
+
+
+# =================================
+# logging
+# =================================
+logging:
+  config: classpath:logback-spring.xml

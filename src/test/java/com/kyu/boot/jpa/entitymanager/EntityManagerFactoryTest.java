@@ -66,6 +66,10 @@ public class EntityManagerFactoryTest {
         EntityManager em2 = emf.createEntityManager();
         EntityManager em3 = emf.createEntityManager();
 
+        System.out.println(em1);
+        System.out.println(em2);
+        System.out.println(em3);
+
         assertThat(em1, is(not(sameInstance(em2))));
         assertThat(em1, is(not(sameInstance(em3))));
     }
