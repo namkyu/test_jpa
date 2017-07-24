@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 
 /**
@@ -37,6 +38,9 @@ public class NPlusOneProblem {
 
     @Autowired
     private CatRepository catRepository;
+
+    @Autowired
+    private OrderRepository orderRepository;
 
     @PersistenceContext
     private EntityManager em;
@@ -77,8 +81,6 @@ public class NPlusOneProblem {
         Owner owner = ownerRepository.findOne(1);
         assertThat(1, is(owner.getId()));
         assertThat(9, is(owner.getCats().size()));
-
-        System.out.println(ownerRepository.findAll());
         assertThat(19, is(ownerRepository.findAll().size()));
     }
 
@@ -119,6 +121,49 @@ public class NPlusOneProblem {
                 System.out.println(cat.getName());
             });
         });
+    }
+
+    private void makeTestData() {
+        for (int i = 0; i < 10; i++) {
+            Shipping shipping = new Shipping();
+            shipping.setId(i);
+
+            Order order = new Order();
+            order.setId(i);
+            order.setShipping(shipping);
+
+            em.persist(order);
+        }
+
+        em.flush();
+        em.clear();
+    }
+
+    /**
+     * OneToOne N+1 문제
+     * order 엔티티를 10개 가져왔을 때 shipping 엔티티의 데이터를 가져오기 위해 10번 select 한다.
+     * 이 처리에 대해서 LAZY, EAGER 둘 중 어떤 전략이 좋을지 확인해 보자.
+     */
+    @Test
+    @Transactional
+    public void OneToOne쿼리() {
+        makeTestData();
+        orderRepository.findAll();
+    }
+
+    /**
+     * M+1 문제가 해소됐다. 한번의 쿼리로 모든 데이터를 가져왔음
+     */
+    @Test
+    @Transactional
+    public void OneToOne쿼리_fetch적용() {
+        makeTestData();
+        TypedQuery typedQuery = em.createQuery("select o from Order o left join fetch o.shipping", Order.class);
+        List<Order> orderList = typedQuery.getResultList();
+        assertThat(10, is(orderList.size()));
+
+        Order order = em.find(Order.class, 8);
+        assertNotNull(order);
     }
 }
 
@@ -173,10 +218,46 @@ class Cat {
 
 
 interface OwnerRepository extends JpaRepository<Owner, Integer> {
+}
 
+interface CatRepository extends JpaRepository<Cat, Integer> {
+}
+
+interface OrderRepository extends JpaRepository<Order, Integer> {
 }
 
 
-interface CatRepository extends JpaRepository<Cat, Integer> {
+@Getter
+@Setter
+@NoArgsConstructor
+@lombok.ToString
+@Entity
+@Table(name = "NPLUS_ORDER")
+class Order {
+    @Id
+    private int id;
 
+    @OneToOne(fetch = FetchType.LAZY, mappedBy = "order", cascade = CascadeType.PERSIST, optional = false)
+    private Shipping shipping;
+
+    public void setShipping(Shipping shipping) {
+        this.shipping = shipping;
+        shipping.setOrder(this);
+    }
+}
+
+
+@Getter
+@Setter
+@NoArgsConstructor
+@lombok.ToString(exclude = "order")
+@Entity
+@Table(name = "NPLUS_SHIPPING")
+class Shipping {
+
+    @Id
+    private int id;
+
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
+    private Order order;
 }
