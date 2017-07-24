@@ -1,6 +1,8 @@
 package com.kyu.boot.jpa.querydsl;
 
 import com.kyu.boot.com.kyu.boot.entity.querydsl.*;
+import com.querydsl.core.Tuple;
+import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.JPQLQuery;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
@@ -39,12 +41,10 @@ public class QueryDSLTest extends QueryDslRepositorySupport {
 
     @Before
     public void before() {
-        DslPhone phone = new DslPhone();
-        phone.setId(1);
-        phone.setNumber("010-1111-1111");
-        DslPhone phone1 = new DslPhone();
-        phone1.setId(2);
-        phone1.setNumber("010-2222-2222");
+        DslPhone phone = new DslPhone(1, "010-1111-1111", "LG");
+        DslPhone phone1 = new DslPhone(2, "010-2222-2222", "SAMSUNG");
+        DslPhone phone2 = new DslPhone(3, "010-2222-2222", "SAMSUNG");
+        DslPhone phone3 = new DslPhone(4, "010-2222-2222", "SAMSUNG");
 
         DslHomeAddress homeAddress = new DslHomeAddress();
         homeAddress.setId(1);
@@ -54,8 +54,11 @@ public class QueryDSLTest extends QueryDslRepositorySupport {
         member.setId(1);
         member.setName("nklee");
         member.setHomeAddress(homeAddress);
+
         member.addPhone(phone);
         member.addPhone(phone1);
+        member.addPhone(phone2);
+        member.addPhone(phone3);
 
         em.persist(member);
         em.flush();
@@ -205,4 +208,38 @@ public class QueryDSLTest extends QueryDslRepositorySupport {
         DslPhone phoneEntity = em.find(DslPhone.class, 2);
         assertNull(phoneEntity);
     }
+
+    @Test
+    @Transactional
+    public void GroupBy() {
+        QDslPhone phone = QDslPhone.dslPhone;
+
+        JPQLQuery query = from(phone);
+        query.groupBy(phone.number, phone.manufacture);
+        query.select(phone.number, phone.manufacture);
+
+        List<Tuple> list = query.fetch();
+        assertThat(2, is(list.size()));
+        for (Tuple tuple : list) {
+            System.out.println("number : " + tuple.get(phone.number) + ", manufacture : " + tuple.get(phone.manufacture));
+        }
+    }
+
+    @Test
+    @Transactional
+    public void GroupByToDto() {
+        QDslPhone phone = QDslPhone.dslPhone;
+
+        JPQLQuery query = from(phone);
+        query.groupBy(phone.number, phone.manufacture);
+        query.select(Projections.bean(PhoneDto.class, phone.number, phone.manufacture));
+
+        List<PhoneDto> list = query.fetch();
+        assertThat(2, is(list.size()));
+
+        for (PhoneDto phoneDto : list) {
+            System.out.println(phoneDto);
+        }
+    }
 }
+

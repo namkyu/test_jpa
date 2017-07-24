@@ -22,6 +22,14 @@ public class DslPhone {
 
     private String number;
 
+    private String manufacture;
+
+    public DslPhone(int id, String number, String manufacture) {
+        this.id = id;
+        this.number = number;
+        this.manufacture = manufacture;
+    }
+
     @ManyToOne
     @JoinColumn(name = "MEMBER_ID")
     private DslMember member;
