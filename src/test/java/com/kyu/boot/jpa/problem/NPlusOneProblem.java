@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 
@@ -124,6 +125,12 @@ public class NPlusOneProblem {
     }
 
     private void makeTestData() {
+        Product product = new Product();
+        product.setId(1);
+        product.setName("바구니");
+        em.persist(product);
+
+        int orderProductId = 0;
         for (int i = 0; i < 10; i++) {
             Shipping shipping = new Shipping();
             shipping.setId(i);
@@ -131,6 +138,13 @@ public class NPlusOneProblem {
             Order order = new Order();
             order.setId(i);
             order.setShipping(shipping);
+
+            for (int j = 0; j < 5; j++) {
+                OrderProduct orderProduct = new OrderProduct();
+                orderProduct.setId(orderProductId);
+                orderProduct.setOrder(order);
+                orderProductId++;
+            }
 
             em.persist(order);
         }
@@ -153,17 +167,76 @@ public class NPlusOneProblem {
 
     /**
      * M+1 문제가 해소됐다. 한번의 쿼리로 모든 데이터를 가져왔음
+     * 페치 조인으로 조회해서 지연 로딩 발생 안함
+     * <p>
+     * -----------------------------------------
+     * fetch 적용 쿼리
+     * -----------------------------------------
+     * select
+     * order0_.id as id1_36_0_,
+     * shipping1_.id as id1_39_1_,
+     * shipping1_.order_id as order_id2_39_1_
+     * from
+     * nplus_order order0_
+     * left outer join
+     * nplus_shipping shipping1_
+     * on order0_.id=shipping1_.order_id
+     * <p>
+     * <p>
+     * -----------------------------------------
+     * fetch 미적용 쿼리 1+N 문제 발생
+     * -----------------------------------------
+     * select
+     * order0_.id as id1_36_
+     * from
+     * nplus_order order0_
+     * left outer join
+     * nplus_shipping shipping1_
+     * on order0_.id=shipping1_.order_id
      */
     @Test
     @Transactional
     public void OneToOne쿼리_fetch적용() {
         makeTestData();
+
         TypedQuery typedQuery = em.createQuery("select o from Order o left join fetch o.shipping", Order.class);
         List<Order> orderList = typedQuery.getResultList();
         assertThat(10, is(orderList.size()));
 
         Order order = em.find(Order.class, 8);
         assertNotNull(order);
+    }
+
+    /**
+     * Order 테이블에 데이터 10개
+     * OrderProducts 테이블에 데이터 5개
+     * 위의 두 개의 테이블을 서로 조인하면 50개가 나온다.
+     */
+    @Test
+    @Transactional
+    public void fetch적용시_데이터가_중복노출되는현상() {
+        makeTestData();
+
+        TypedQuery typedQuery = em.createQuery("select o from Order o join fetch o.orderProducts", Order.class);
+        System.out.println("--------------------------------------------");
+        List<Order> orderList = typedQuery.getResultList();
+        System.out.println("--------------------------------------------");
+
+        assertThat(10, is(not(orderList.size())));
+        assertThat(50, is(orderList.size()));
+    }
+
+    @Test
+    @Transactional
+    public void fetch적용시_데이터가_중복노출되는현상_distinct로_해결하기() {
+        makeTestData();
+
+        TypedQuery typedQuery = em.createQuery("select distinct o from Order o join fetch o.orderProducts", Order.class);
+        System.out.println("--------------------------------------------");
+        List<Order> orderList = typedQuery.getResultList();
+        System.out.println("--------------------------------------------");
+
+        assertThat(10, is(orderList.size()));
     }
 }
 
@@ -240,9 +313,16 @@ class Order {
     @OneToOne(fetch = FetchType.LAZY, mappedBy = "order", cascade = CascadeType.PERSIST, optional = false)
     private Shipping shipping;
 
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "order", cascade = CascadeType.PERSIST)
+    private List<OrderProduct> orderProducts = new ArrayList<>();
+
     public void setShipping(Shipping shipping) {
         this.shipping = shipping;
         shipping.setOrder(this);
+    }
+
+    public void addOrderProducts(OrderProduct orderProduct) {
+        orderProducts.add(orderProduct);
     }
 }
 
@@ -260,4 +340,39 @@ class Shipping {
 
     @OneToOne(fetch = FetchType.LAZY, optional = false)
     private Order order;
+}
+
+
+@Getter
+@Setter
+@NoArgsConstructor
+@lombok.ToString(exclude = "order")
+@Entity
+@Table(name = "NPLUS_ORDER_PRODUCT")
+class OrderProduct {
+
+    @Id
+    private int id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Order order;
+
+    public void setOrder(Order order) {
+        this.order = order;
+        order.addOrderProducts(this);
+    }
+}
+
+
+@Getter
+@Setter
+@NoArgsConstructor
+@Entity
+@Table(name = "NPLUS_PRODUCT")
+class Product {
+
+    @Id
+    private int id;
+
+    private String name;
 }
