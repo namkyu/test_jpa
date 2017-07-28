@@ -32,10 +32,12 @@ public class JPQLTest {
     @Before
     public void before() {
         Department department = new Department();
+        department.setId(1);
         department.setName("development");
 
         for (int i = 0; i < CNT; i++) {
             Person person = new Person();
+            person.setId(i);
             person.setName("nklee" + i);
             person.setDepartment(department);
             em.persist(person);
@@ -47,7 +49,6 @@ public class JPQLTest {
 
     @Test
     public void testJPQL() {
-
         // JPQL은 객체지향 쿼리 (Person은 class 이름이다. Table 이름이 아님)
         em.createQuery("SELECT p FROM Person p")
                 .getResultList()
@@ -81,7 +82,26 @@ public class JPQLTest {
         typedQuery.setParameter("name", "development");
 
         List<Person> list = typedQuery.getResultList();
-        assertThat(list.size(), is(1));
+        assertThat(list.size(), is(10));
+    }
+
+    @Test
+    public void 쓰기지연_처리후에_JPQL호출하면_flush되는지확인() {
+        Person person = new Person();
+        person.setId(20);
+        person.setName("nklee");
+        em.persist(person);
+
+        Person returnPersonEntity = em.find(Person.class, 20);
+        assertThat("nklee", is(returnPersonEntity.getName()));
+
+        System.out.println("-----------------------------------------");
+        System.out.println("execute JPQL");
+        System.out.println("-----------------------------------------");
+        TypedQuery typedQuery = em.createQuery("select p from Person p where p.id = 20", Person.class);
+        List<Person> list = typedQuery.getResultList(); // JPQL을 실행하게 되면서 영속성 컨텍스트를 flush 한다. 이때 DB로 insert문이 전송
+        assertThat(1, is(list.size()));
+        System.out.println("-----------------------------------------");
     }
 }
 
@@ -106,7 +126,6 @@ class Person {
 
     @Id
     @Column(name = "PERSON_ID")
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
     private String name;
@@ -129,7 +148,6 @@ class Department {
 
     @Id
     @Column(name = "DEPT_ID")
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
     private String name;
