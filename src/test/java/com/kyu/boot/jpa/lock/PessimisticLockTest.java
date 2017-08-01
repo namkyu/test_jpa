@@ -48,7 +48,7 @@ public class PessimisticLockTest {
         em.clear();
     }
 
-    @Test(expected = PessimisticLockException.class)
+    @Test(expected = PessimisticLockingFailureException.class)
     @Transactional
     public void 비관적락_예외_CASE_1() {
         em.find(PessimisticMember.class, 1, LockModeType.PESSIMISTIC_WRITE); // where pessimisti0_.id=? for update (H2)
