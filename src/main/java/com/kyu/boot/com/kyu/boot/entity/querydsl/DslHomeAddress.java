@@ -22,7 +22,7 @@ public class DslHomeAddress {
 
     private String address;
 
-    @OneToOne
+    @OneToOne(optional = false)
     @JoinColumn(name = "MEMBER_ID")
     private DslMember member;
 }
