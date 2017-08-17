@@ -33,7 +33,7 @@ public class CascadeTypeAllTest {
 
     @After
     public void after() {
-        // 테스트 케이스가 종료되면 무조건 영속석 컨텍스트를 초기화한다.
+        // 테스트 케이스가 종료되면 무조건 영속성 컨텍스트를 초기화한다.
         em.clear();
     }
 
