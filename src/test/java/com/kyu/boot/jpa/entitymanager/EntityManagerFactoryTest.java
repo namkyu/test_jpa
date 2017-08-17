@@ -36,7 +36,7 @@ public class EntityManagerFactoryTest {
     private MemberService memberService;
 
     @Test
-    public void testEntityManagerFactory() {
+    public void 엔티티매니저팩토리_속성_정보_확인() {
         emf.getProperties().forEach((k, v) -> System.out.println("key : " + k + ", value : " + v));
     }
 
@@ -61,7 +61,7 @@ public class EntityManagerFactoryTest {
     }
 
     @Test
-    public void makeEntityManager() {
+    public void 엔티티매니저_호출시마다_새로운인스턴스리턴() {
         EntityManager em1 = emf.createEntityManager();
         EntityManager em2 = emf.createEntityManager();
         EntityManager em3 = emf.createEntityManager();
@@ -69,9 +69,13 @@ public class EntityManagerFactoryTest {
         System.out.println(em1);
         System.out.println(em2);
         System.out.println(em3);
+        System.out.println(em);
 
         assertThat(em1, is(not(sameInstance(em2))));
         assertThat(em1, is(not(sameInstance(em3))));
+        assertThat(em, is(not(sameInstance(em1))));
+        assertThat(em, is(not(sameInstance(em2))));
+        assertThat(em, is(not(sameInstance(em3))));
     }
 }
 
