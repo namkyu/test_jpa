@@ -61,6 +61,7 @@ public class EegerLoadingTest {
 @Data
 @ToString(exclude = "phones")
 @Entity
+@Table(name = "EAGER_MEMBER")
 class EagerMember {
 
     @Id
@@ -79,12 +80,14 @@ class EagerMember {
 
 @Data
 @Entity
+@Table(name = "EAGER_PHONE")
 class EagerPhone {
 
     @Id
     @Column(name = "PHONE_ID")
     private int id;
 
-    @ManyToOne
+    @JoinColumn(name = "MEMBER_ID", nullable = false)
+    @ManyToOne(fetch = FetchType.EAGER)
     private EagerMember member;
 }
