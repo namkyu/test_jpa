@@ -242,21 +242,5 @@ public class QueryDSLTest extends QueryDslRepositorySupport {
         }
     }
 
-    @Test
-    @Transactional
-    public void JPQL로_조회한_엔티티는_영속상태이다() {
-        QDslMember member = QDslMember.dslMember;
-        QDslPhone phone = QDslPhone.dslPhone;
-        QDslHomeAddress homeAddress = QDslHomeAddress.dslHomeAddress;
-
-        JPQLQuery jpqlQuery = from(member);
-        jpqlQuery.innerJoin(member.phoneList, phone);
-        jpqlQuery.innerJoin(member.homeAddress, homeAddress);
-        jpqlQuery.fetch();
-
-        DslMember entity = em.find(DslMember.class, 1);
-        boolean isLoaded = em.getEntityManagerFactory().getPersistenceUnitUtil().isLoaded(entity);
-        assertThat(true, is(isLoaded));
-    }
 }
 
