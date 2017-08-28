@@ -19,7 +19,6 @@ import static org.junit.Assert.assertThat;
 
 
 @Slf4j
-@Transactional
 @RunWith(SpringRunner.class)
 @SpringBootTest
 public class JPQLTest {
@@ -48,6 +47,7 @@ public class JPQLTest {
     }
 
     @Test
+    @Transactional
     public void testJPQL() {
         // JPQL은 객체지향 쿼리 (Person은 class 이름이다. Table 이름이 아님)
         em.createQuery("SELECT p FROM Person p")
@@ -66,6 +66,7 @@ public class JPQLTest {
     }
 
     @Test
+    @Transactional
     public void testCompositTypeQuery() {
         TypedQuery typedQuery = em.createQuery("select p from Person p", Person.class);
         List<Person> personList = typedQuery.getResultList();
@@ -77,6 +78,7 @@ public class JPQLTest {
     }
 
     @Test
+    @Transactional
     public void testFilter() {
         TypedQuery typedQuery = em.createQuery("select p from Person p where p.department.name = :name", Person.class);
         typedQuery.setParameter("name", "development");
@@ -86,12 +88,14 @@ public class JPQLTest {
     }
 
     @Test
+    @Transactional
     public void 쓰기지연_처리후에_JPQL호출하면_flush되는지확인() {
         Person person = new Person();
         person.setId(20);
         person.setName("nklee");
         em.persist(person);
 
+        // 영속성 컨텍스트에 where id = 20 인 Person 엔티티 존재 여부
         Person returnPersonEntity = em.find(Person.class, 20);
         assertThat("nklee", is(returnPersonEntity.getName()));
 
@@ -102,6 +106,17 @@ public class JPQLTest {
         List<Person> list = typedQuery.getResultList(); // JPQL을 실행하게 되면서 영속성 컨텍스트를 flush 한다. 이때 DB로 insert문이 전송
         assertThat(1, is(list.size()));
         System.out.println("-----------------------------------------");
+    }
+
+    @Test
+    @Transactional
+    public void JPQL로_조회한_엔티티는_영속상태이다() {
+        TypedQuery typedQuery = em.createQuery("select p from Person p where p.id = 1", Person.class);
+        List<Person> persons = typedQuery.getResultList();
+        Person person = persons.get(0);
+
+        boolean isLoaded = em.getEntityManagerFactory().getPersistenceUnitUtil().isLoaded(person);
+        assertThat(true, is(isLoaded));
     }
 }
 
