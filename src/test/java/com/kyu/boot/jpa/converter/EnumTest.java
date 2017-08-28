@@ -73,9 +73,6 @@ class EMember {
 
 
 enum Gender {
-    MALE, FEMALE;
+    MALE,
+    FEMALE;
 }
-
-
-
-
