@@ -81,6 +81,7 @@ class OptionalMember {
     @Id
     private int id;
 
+    // optional 반드시 값이 필요하다면 true, false로 설정했을 때 해당 객체에 null이 들어갈 수 있음
     @ManyToOne(optional = false)
     private OptionalTeam team;
 
