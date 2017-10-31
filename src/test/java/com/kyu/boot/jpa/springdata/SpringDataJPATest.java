@@ -2,6 +2,9 @@ package com.kyu.boot.jpa.springdata;
 
 import com.kyu.boot.jpa.springdata.entity.SpringMember;
 import com.kyu.boot.jpa.springdata.repo.MemberRepository;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
@@ -10,10 +13,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import javax.persistence.Column;
+import javax.persistence.Embeddable;
+import javax.persistence.EmbeddedId;
+import javax.persistence.Entity;
 import javax.transaction.Transactional;
+import java.io.Serializable;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -21,6 +30,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.sameInstance;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 
 
@@ -36,6 +46,9 @@ public class SpringDataJPATest {
     @Autowired
     private MemberRepository memberRepository;
 
+    @Autowired
+    private SpringDataEmpRepository springDataEmpRepository;
+
     /**
      * 각각의 @Test메서드 실행 전 호출된다.
      * Test 메서드는 랜덤하게 실행된다. (순서 보장 없음)
@@ -46,6 +59,25 @@ public class SpringDataJPATest {
             SpringMember member = new SpringMember(i, "Lee" + i);
             memberRepository.save(member);
         }
+
+        memberRepository.flush();
+    }
+
+    @Test
+    public void 중복키_저장_처리() {
+        SpringMember member = new SpringMember(5, "Lee555");
+        System.out.println("-------------------------");
+        memberRepository.saveAndFlush(member);
+        System.out.println("-------------------------");
+    }
+
+    @Test
+    public void 전체삭제() {
+        memberRepository.deleteAll();
+        memberRepository.flush();
+
+        SpringMember entityMember = memberRepository.findOne(5);
+        assertNull(entityMember);
     }
 
     /**
@@ -126,6 +158,59 @@ public class SpringDataJPATest {
         System.out.println("previousPage : " + page.previousPageable());
         System.out.println("=======================================================");
     }
+
+    @Test
+    public void compositKey() {
+        SpringDataEmpId id = new SpringDataEmpId(1, "nklee");
+        SpringDataEmp emp = new SpringDataEmp(id, "010-1111-1111");
+        springDataEmpRepository.save(emp);
+        springDataEmpRepository.flush();
+
+        List<SpringDataEmp> list = springDataEmpRepository.findByIdEmpNo(1);
+        assertThat(1, is(list.size()));
+
+        List<SpringDataEmp> list2 = springDataEmpRepository.findByIdEmpName("nklee");
+        assertThat(1, is(list2.size()));
+
+        List<SpringDataEmp> list3 = springDataEmpRepository.findByIdEmpNoAndIdEmpName(1, "nklee");
+        assertThat(1, is(list3.size()));
+    }
+
+
 }
 
 
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Entity
+class SpringDataEmp {
+
+    @EmbeddedId
+    private SpringDataEmpId id;
+
+    private String phone;
+}
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Embeddable
+class SpringDataEmpId implements Serializable {
+
+    @Column(name = "EMP_NO")
+    private int empNo;
+
+    @Column(name = "EMP_NAME")
+    private String empName;
+}
+
+interface SpringDataEmpRepository extends JpaRepository<SpringDataEmp, SpringDataEmpId> {
+
+    List<SpringDataEmp> findByIdEmpNo(int empNo);
+
+    List<SpringDataEmp> findByIdEmpName(String empName);
+
+    List<SpringDataEmp> findByIdEmpNoAndIdEmpName(int empNo, String empName);
+
+}
