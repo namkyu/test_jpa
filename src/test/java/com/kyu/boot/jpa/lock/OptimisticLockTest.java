@@ -14,6 +14,8 @@ import javax.persistence.*;
 import javax.transaction.Transactional;
 
 import static junit.framework.TestCase.fail;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
 
 /**
  * @Project : test_project
@@ -71,6 +73,14 @@ public class OptimisticLockTest {
 
         fail("Optimistic lock exception 발생!!");
     }
+
+    @Test
+    @Transactional
+    public void 업데이트테스트() {
+        memberService.updateMember2();
+        OptimisticMember member = em.find(OptimisticMember.class, 1);
+        assertThat(1, is(member.getVersion()));
+    }
 }
 
 @Service
@@ -85,6 +95,13 @@ class MemberService {
         em.merge(member);
         em.flush();
     }
+
+    @Transactional(Transactional.TxType.REQUIRES_NEW)
+    public void updateMember2() {
+        OptimisticMember member = em.find(OptimisticMember.class, 1);
+        member.setName("nklee4");
+    }
+
 }
 
 @Data

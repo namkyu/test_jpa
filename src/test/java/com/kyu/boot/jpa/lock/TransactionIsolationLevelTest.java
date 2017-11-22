@@ -23,7 +23,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
@@ -50,7 +49,7 @@ public class TransactionIsolationLevelTest {
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public void 동시insert_유니크오류버전() {
         TIL_Account account = new TIL_Account();
-        account.setId(2);
+        account.setId(10);
         account.setName("nklee");
 
         // insert
@@ -61,7 +60,7 @@ public class TransactionIsolationLevelTest {
         em.flush();
         em.clear();
 
-        fail("Unique index or primary key violation: \"PRIMARY KEY ON PUBLIC.TIL_ACCOUNT(ID)\"");
+        fail("Unique index or primary key violation: 'PRIMARY KEY ON PUBLIC.TIL_ACCOUNT(ID)\"");
     }
 
 
@@ -69,7 +68,7 @@ public class TransactionIsolationLevelTest {
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public void 동시insert_lock버전() {
         TIL_Account account = new TIL_Account();
-        account.setId(2);
+        account.setId(10);
         account.setName("nklee");
 
         // insert
@@ -131,7 +130,6 @@ public class TransactionIsolationLevelTest {
         // MSSQL 에서는 select 문장이 실행되는 동안 해당 데이터에 Shared lock 이 걸리지만 H2 에서는 lock이 걸리지 않는다.
         // 각각의 DB에 따라 isolation이 다르게 동작하므로 격리수준별 테스트가 꼭 필요해 보인다.
         account = accountService.requiresNew(1);
-        assertThat("namkyu", not(account.getName()));
         assertThat("nklee", is(account.getName()));
     }
 
@@ -161,6 +159,22 @@ public class TransactionIsolationLevelTest {
         assertThat("Lee namkyu", is(account.getName()));
     }
 
+    // -------------------------------------------------------------------------
+    // SERIALIZABLE 테스트
+    // -------------------------------------------------------------------------
+    @Test
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void SERIALIZABLE_테스트() throws SQLException, InterruptedException {
+        TIL_Account account = em.find(TIL_Account.class, 1);
+        assertThat("nklee", is(account.getName()));
+
+        // 데이터 변경
+        accountService.changeEntity2(1, "Lee namkyu");
+
+        account = em.find(TIL_Account.class, 1);
+        assertThat("nklee", is(account.getName()));
+    }
+
 
 }
 
@@ -172,7 +186,7 @@ class AccountService {
     @PersistenceContext
     private EntityManager em;
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.DEFAULT)
+    @Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.READ_COMMITTED)
     public TIL_Account requiresNew(int id) {
         TIL_Account account = em.find(TIL_Account.class, id);
         return account;
@@ -200,6 +214,12 @@ class AccountService {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ)
     public void changeEntity(int id, String name) {
+        TIL_Account account = em.find(TIL_Account.class, id);
+        account.setName(name);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.SERIALIZABLE)
+    public void changeEntity2(int id, String name) {
         TIL_Account account = em.find(TIL_Account.class, id);
         account.setName(name);
     }

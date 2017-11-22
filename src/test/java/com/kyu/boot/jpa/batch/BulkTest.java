@@ -38,7 +38,7 @@ public class BulkTest {
 
     @Test
     @Transactional
-    public void bulkUpdate() {
+    public void bulkInsert() {
 
         for (int i = 0; i < 10000; i++) {
             BulkMember member = new BulkMember();

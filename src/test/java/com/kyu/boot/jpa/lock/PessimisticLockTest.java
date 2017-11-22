@@ -70,6 +70,16 @@ public class PessimisticLockTest {
         // 위에서 name을 변경하고 commit 하지 않아 오류 발생
         memberService.updateMember(1);
     }
+
+    @Test(expected = PessimisticLockingFailureException.class)
+    @Transactional
+    public void 비관적락_예외_CASE_3() {
+        em.find(PessimisticMember.class, 1, LockModeType.PESSIMISTIC_READ);
+        em.flush();
+
+        // 해당 row에 lock이 설정되어 있어 오류 발생
+        memberService.updateMember(1);
+    }
 }
 
 @Service
