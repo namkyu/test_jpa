@@ -52,7 +52,7 @@ public class NPlusOneProblem {
         // 테스트 데이터
         int catId = 1;
         int ownId = 1;
-        for (int i = 1; i < 20; i++) {
+        for (int i = 0; i < 20; i++) {
             Owner owner = new Owner();
             owner.setId(ownId);
             owner.setName("nklee" + ownId);
@@ -60,7 +60,7 @@ public class NPlusOneProblem {
             ownId++;
 
             // cats 테스트 데이터
-            for (int j = 1; j < 10; j++) {
+            for (int j = 0; j < 10; j++) {
                 Cat cat = new Cat();
                 cat.setId(catId);
                 cat.setName("야옹이" + catId);
@@ -81,8 +81,8 @@ public class NPlusOneProblem {
     public void test데이터검증() {
         Owner owner = ownerRepository.findOne(1);
         assertThat(1, is(owner.getId()));
-        assertThat(9, is(owner.getCats().size()));
-        assertThat(19, is(ownerRepository.findAll().size()));
+        assertThat(10, is(owner.getCats().size()));
+        assertThat(20, is(ownerRepository.findAll().size()));
     }
 
     /**
@@ -117,11 +117,11 @@ public class NPlusOneProblem {
         System.out.println("list size : " + ownerList.size());
         System.out.println("---------------------------------------");
 
-        ownerList.forEach(owner -> {
-            owner.getCats().forEach(cat -> {
-                System.out.println(cat.getName());
-            });
-        });
+//        ownerList.forEach(owner -> {
+//            owner.getCats().forEach(cat -> {
+//                System.out.println(cat.getName());
+//            });
+//        });
     }
 
     private void makeTestData() {
@@ -269,7 +269,7 @@ class Owner {
     private int id;
     private String name;
 
-    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST, mappedBy = "owner")
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.PERSIST, mappedBy = "owner")
     @BatchSize(size = 10)
     private List<Cat> cats = new ArrayList<>();
 }
@@ -286,7 +286,6 @@ class Cat {
 
     @ManyToOne(fetch = FetchType.EAGER)
     private Owner owner;
-
 }
 
 
