@@ -161,9 +161,10 @@ public class SpringDataJPATest {
 
     @Test
     public void compositKey() {
-        SpringDataEmpId id = new SpringDataEmpId(1, "nklee");
-        SpringDataEmp emp = new SpringDataEmp(id, "010-1111-1111");
+        SpringDataEmp emp = new SpringDataEmp(new SpringDataEmpId(1, "nklee"), "010-1111-1111");
+        SpringDataEmp emp2 = new SpringDataEmp(new SpringDataEmpId(2, "nklee2"), "010-2222-2222");
         springDataEmpRepository.save(emp);
+        springDataEmpRepository.save(emp2);
         springDataEmpRepository.flush();
 
         List<SpringDataEmp> list = springDataEmpRepository.findByIdEmpNo(1);
@@ -174,6 +175,9 @@ public class SpringDataJPATest {
 
         List<SpringDataEmp> list3 = springDataEmpRepository.findByIdEmpNoAndIdEmpName(1, "nklee");
         assertThat(1, is(list3.size()));
+
+        List<SpringDataEmp> list4 = springDataEmpRepository.findByIdEmpNameIn(new String[] {"nklee", "nklee2"});
+        assertThat(2, is(list4.size()));
     }
 
 
@@ -212,5 +216,7 @@ interface SpringDataEmpRepository extends JpaRepository<SpringDataEmp, SpringDat
     List<SpringDataEmp> findByIdEmpName(String empName);
 
     List<SpringDataEmp> findByIdEmpNoAndIdEmpName(int empNo, String empName);
+
+    List<SpringDataEmp> findByIdEmpNameIn(String[] empNames);
 
 }
