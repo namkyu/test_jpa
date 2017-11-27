@@ -125,10 +125,6 @@ public class NPlusOneProblem {
     }
 
     private void makeTestData() {
-        Product product = new Product();
-        product.setId(1);
-        product.setName("바구니");
-        em.persist(product);
 
         int orderProductId = 0;
         for (int i = 0; i < 10; i++) {
@@ -196,6 +192,19 @@ public class NPlusOneProblem {
      */
     @Test
     @Transactional
+    public void OneToOne쿼리_fetch적용하지않음() {
+        makeTestData();
+
+        TypedQuery typedQuery = em.createQuery("select o from Order o left join o.shipping", Order.class);
+        List<Order> orderList = typedQuery.getResultList();
+        assertThat(10, is(orderList.size()));
+
+        Order order = em.find(Order.class, 8);
+        assertNotNull(order);
+    }
+
+    @Test
+    @Transactional
     public void OneToOne쿼리_fetch적용() {
         makeTestData();
 
@@ -217,7 +226,7 @@ public class NPlusOneProblem {
     public void fetch적용시_데이터가_중복노출되는현상() {
         makeTestData();
 
-        TypedQuery typedQuery = em.createQuery("select o from Order o join fetch o.orderProducts", Order.class);
+        TypedQuery typedQuery = em.createQuery("select o from Order o left join fetch o.orderProducts", Order.class);
         System.out.println("--------------------------------------------");
         List<Order> orderList = typedQuery.getResultList();
         System.out.println("--------------------------------------------");
@@ -360,18 +369,4 @@ class OrderProduct {
         this.order = order;
         order.addOrderProducts(this);
     }
-}
-
-
-@Getter
-@Setter
-@NoArgsConstructor
-@Entity
-@Table(name = "NPLUS_PRODUCT")
-class Product {
-
-    @Id
-    private int id;
-
-    private String name;
 }
