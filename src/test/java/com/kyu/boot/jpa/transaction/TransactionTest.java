@@ -107,7 +107,7 @@ class TMemberService {
     // checked exception
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void occursCheckedException(String name, int id) throws FileNotFoundException {
-        Member member = em.find(Member.class, 1);
+        Member member = em.find(Member.class, id);
         member.setName(name);
         throw new FileNotFoundException();
     }
@@ -115,7 +115,7 @@ class TMemberService {
     // checked exception
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void occursCheckedExceptionRollback(String name, int id) throws FileNotFoundException {
-        Member member = em.find(Member.class, 1);
+        Member member = em.find(Member.class, id);
         member.setName(name);
         throw new FileNotFoundException();
     }
@@ -124,7 +124,7 @@ class TMemberService {
     // unchecked exception (spring boot default rollback)
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void occursUnCheckedException(String name, int id) {
-        Member member = em.find(Member.class, 1);
+        Member member = em.find(Member.class, id);
         member.setName(name);
         throw new NullPointerException();
     }
