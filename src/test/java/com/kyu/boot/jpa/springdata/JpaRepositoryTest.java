@@ -15,6 +15,8 @@ import javax.persistence.EntityNotFoundException;
 import javax.persistence.PersistenceUnit;
 import javax.transaction.Transactional;
 
+import java.util.List;
+
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.*;
@@ -98,6 +100,5 @@ public class JpaRepositoryTest {
         // 데이터가 DB에 존재하지 않아 null 리턴
         assertNull(member);
     }
-
 
 }

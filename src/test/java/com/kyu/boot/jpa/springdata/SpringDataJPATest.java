@@ -180,6 +180,24 @@ public class SpringDataJPATest {
         assertThat(2, is(list4.size()));
     }
 
+    @Test
+    public void test_orderByAsc() {
+        List<SpringMember> list = memberRepository.findAllByOrderBySeqAsc();
+        list.forEach(System.out::println);
+    }
+
+    @Test
+    public void test_orderByDesc() {
+        List<SpringMember> list = memberRepository.findAllByOrderBySeqDesc();
+        list.forEach(System.out::println);
+    }
+
+    @Test
+    public void test_search_nam_and_orderBy() {
+        List<SpringMember> list = memberRepository.findTop3ByNameLike("Lee");
+        list.forEach(System.out::println);
+    }
+
 
 }
 

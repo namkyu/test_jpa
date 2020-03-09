@@ -21,6 +21,12 @@ public interface MemberRepository extends JpaRepository<SpringMember, Integer> {
 
     List<SpringMember> findTop3ByNameLike(String name);
 
+    List<SpringMember> findAllByOrderBySeqAsc();
+
+    List<SpringMember> findAllByOrderBySeqDesc();
+
+    List<SpringMember> findTop10ByNameLikeOrderBySeqDesc(String name);
+
     SpringMember readBySeq(int seq);
 
     SpringMember readByName(String name);
