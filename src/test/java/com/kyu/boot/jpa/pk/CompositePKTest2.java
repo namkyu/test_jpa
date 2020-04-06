@@ -12,6 +12,7 @@ import javax.persistence.*;
 import javax.transaction.Transactional;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -37,24 +38,26 @@ public class CompositePKTest2 {
     public void 식별관계() {
 
         // given
-        Schedule schedule = new Schedule();
-        schedule.setTitle("스케줄1");
-        em.persist(schedule);
-
         Scraping scraping = new Scraping();
         scraping.setTitle("스크랩1");
         em.persist(scraping);
 
+        Schedule schedule = new Schedule();
+        schedule.setTitle("스케줄1");
+
         ScheduleJobId id = new ScheduleJobId();
-        id.setSchedule(schedule);
-        id.setScraping(scraping);
+        id.setScheduleId(schedule.getId());
+        id.setScrapingId(scraping.getId());
 
         ScheduleJob scheduleJob = new ScheduleJob();
         scheduleJob.setScheduleJobId(id);
         scheduleJob.setOrdering(1);
+        scheduleJob.setScraping(scraping);
+        scheduleJob.setSchedule(schedule);
+        schedule.addScheduleJob(scheduleJob);
 
         // when
-        em.persist(scheduleJob);
+        em.persist(schedule);
         em.flush();
         em.clear();
 
@@ -66,9 +69,8 @@ public class CompositePKTest2 {
         assertThat("스크랩1", is(scrapingEntity.getTitle()));
 
         ScheduleJob scheduleJobEntity = em.find(ScheduleJob.class, id);
-        ScheduleJobId scheduleJobId = scheduleJobEntity.getScheduleJobId();
-        assertThat("스케줄1", is(scheduleJobId.getSchedule().getTitle()));
-        assertThat("스크랩1", is(scheduleJobId.getScraping().getTitle()));
+        assertThat("스케줄1", is(scheduleJobEntity.getSchedule().getTitle()));
+        assertThat("스크랩1", is(scheduleJobEntity.getScraping().getTitle()));
 
         // 삭제해 보기
         em.remove(scheduleJobEntity); // 이거 먼저 삭제해야 schedule row 삭제 가능
@@ -86,21 +88,28 @@ class ScheduleJob {
     @EmbeddedId
     private ScheduleJobId scheduleJobId;
 
+    @ManyToOne
+    @MapsId("scrapingId")
+    @JoinColumn(name = "scraping_id")
+    private Scraping scraping;
+
+    @ManyToOne
+    @MapsId("scheduleId")
+    @JoinColumn(name = "schedule_id")
+    private Schedule schedule;
+
     @Column(name = "ordering")
     private int ordering;
+
 }
 
 @Data
 @Embeddable
 class ScheduleJobId implements Serializable {
 
-    @ManyToOne
-    @JoinColumn(name = "scraping_id")
-    private Scraping scraping;
+    private String scrapingId;
 
-    @ManyToOne
-    @JoinColumn(name = "schedule_id")
-    private Schedule schedule;
+    private String scheduleId;
 }
 
 @Data
@@ -127,4 +136,12 @@ class Schedule {
 
     @Column(name = "title")
     private String title;
+
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "schedule")
+    private Collection<ScheduleJob> scheduleJobs = new ArrayList<>();
+
+    public void addScheduleJob(ScheduleJob scheduleJob) {
+        scheduleJobs.add(scheduleJob);
+        scheduleJob.setSchedule(this);
+    }
 }
