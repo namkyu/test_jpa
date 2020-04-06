@@ -3,6 +3,7 @@ package com.kyu.boot.jpa.pk;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -32,15 +33,11 @@ public class CompositePKTest2 {
     @PersistenceContext
     private EntityManager em;
 
-
-    @Test
-    @Transactional
-    public void 식별관계() {
-
+    @Before
+    public void before() {
         // given
         Scraping scraping = new Scraping();
         scraping.setTitle("스크랩1");
-        em.persist(scraping);
 
         Schedule schedule = new Schedule();
         schedule.setTitle("스케줄1");
@@ -56,17 +53,24 @@ public class CompositePKTest2 {
         scheduleJob.setSchedule(schedule);
         schedule.addScheduleJob(scheduleJob);
 
-        // when
+        em.persist(scraping);
         em.persist(schedule);
         em.flush();
         em.clear();
+    }
 
-        // then
-        Schedule scheduleEntity = em.find(Schedule.class, schedule.getId());
+    @Test
+    @Transactional
+    public void 식별관계() {
+        Schedule scheduleEntity = em.find(Schedule.class, "1");
         assertThat("스케줄1", is(scheduleEntity.getTitle()));
 
-        Scraping scrapingEntity = em.find(Scraping.class, scraping.getId());
+        Scraping scrapingEntity = em.find(Scraping.class, "1");
         assertThat("스크랩1", is(scrapingEntity.getTitle()));
+
+        ScheduleJobId id = new ScheduleJobId();
+        id.setScheduleId(scheduleEntity.getId());
+        id.setScrapingId(scrapingEntity.getId());
 
         ScheduleJob scheduleJobEntity = em.find(ScheduleJob.class, id);
         assertThat("스케줄1", is(scheduleJobEntity.getSchedule().getTitle()));
@@ -75,6 +79,20 @@ public class CompositePKTest2 {
         // 삭제해 보기
         em.remove(scheduleJobEntity); // 이거 먼저 삭제해야 schedule row 삭제 가능
         em.remove(scheduleEntity);
+        em.flush();
+        em.clear();
+    }
+
+    @Test
+    @Transactional
+    public void test_엔티티_수정() {
+        Schedule scheduleEntity = em.find(Schedule.class, "1");
+        scheduleEntity.setTitle("타이틀 변경");
+        scheduleEntity.getScheduleJobs().forEach(scheduleJob -> {
+            scheduleJob.setOrdering(2);
+        });
+
+        em.persist(scheduleEntity);
         em.flush();
         em.clear();
     }
