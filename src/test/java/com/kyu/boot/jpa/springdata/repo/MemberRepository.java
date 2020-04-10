@@ -1,5 +1,6 @@
 package com.kyu.boot.jpa.springdata.repo;
 
+import com.kyu.boot.jpa.springdata.dto.SpringMemberDTO;
 import com.kyu.boot.jpa.springdata.entity.SpringMember;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -43,6 +44,10 @@ public interface MemberRepository extends JpaRepository<SpringMember, Integer> {
     @Query(value = "SELECT seq, name FROM SPRING_DATA_MEMBER WHERE name = :name", nativeQuery = true)
     SpringMember nativeQueryByName(@Param(value = "name") String name);
 
+    @Query(value = "SELECT new com.kyu.boot.jpa.springdata.dto.SpringMemberDTO(s.name, count(s.seq)) FROM SpringMember s group by s.name")
+    List<SpringMemberDTO> convertDtoType();
+
     @Async
     CompletableFuture<List<SpringMember>> readAllBy();
 }
+

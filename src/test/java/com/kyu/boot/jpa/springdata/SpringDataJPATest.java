@@ -1,5 +1,6 @@
 package com.kyu.boot.jpa.springdata;
 
+import com.kyu.boot.jpa.springdata.dto.SpringMemberDTO;
 import com.kyu.boot.jpa.springdata.entity.SpringMember;
 import com.kyu.boot.jpa.springdata.repo.MemberRepository;
 import lombok.AllArgsConstructor;
@@ -148,6 +149,12 @@ public class SpringDataJPATest {
     }
 
     @Test
+    public void testNativeQueryUsingJPQL() {
+        List<SpringMemberDTO> springMembers = memberRepository.convertDtoType();
+        System.out.println(springMembers);
+    }
+
+    @Test
     public void testPaging() {
         Page<SpringMember> page = memberRepository.findAll(new PageRequest(3, 15));
         System.out.println("=======================================================");
@@ -176,7 +183,7 @@ public class SpringDataJPATest {
         List<SpringDataEmp> list3 = springDataEmpRepository.findByIdEmpNoAndIdEmpName(1, "nklee");
         assertThat(1, is(list3.size()));
 
-        List<SpringDataEmp> list4 = springDataEmpRepository.findByIdEmpNameIn(new String[] {"nklee", "nklee2"});
+        List<SpringDataEmp> list4 = springDataEmpRepository.findByIdEmpNameIn(new String[]{"nklee", "nklee2"});
         assertThat(2, is(list4.size()));
     }
 

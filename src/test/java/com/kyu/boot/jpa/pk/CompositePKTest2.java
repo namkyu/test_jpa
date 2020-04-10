@@ -82,20 +82,6 @@ public class CompositePKTest2 {
         em.flush();
         em.clear();
     }
-
-    @Test
-    @Transactional
-    public void test_엔티티_수정() {
-        Schedule scheduleEntity = em.find(Schedule.class, "1");
-        scheduleEntity.setTitle("타이틀 변경");
-        scheduleEntity.getScheduleJobs().forEach(scheduleJob -> {
-            scheduleJob.setOrdering(2);
-        });
-
-        em.persist(scheduleEntity);
-        em.flush();
-        em.clear();
-    }
 }
 
 @Data
