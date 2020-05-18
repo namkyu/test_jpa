@@ -1,6 +1,7 @@
 package com.kyu.boot.jpa.springdata.entity;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -15,6 +16,7 @@ import javax.persistence.Table;
  * @Description :
  */
 @Data
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "SPRING_DATA_MEMBER")
@@ -22,6 +24,6 @@ import javax.persistence.Table;
 public class SpringMember {
 
     @Id
-    private int seq;
+    private Integer seq;
     private String name;
 }

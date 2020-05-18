@@ -12,6 +12,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -29,10 +31,12 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
+import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.sameInstance;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
+import static org.springframework.data.domain.ExampleMatcher.GenericPropertyMatchers.contains;
 
 
 @Slf4j
@@ -73,6 +77,22 @@ public class SpringDataJPATest {
     }
 
     @Test
+    public void test_repository_save() {
+        SpringMember member = new SpringMember(5, "updated5");
+        memberRepository.save(member);
+        System.out.println("================");
+        SpringMember memberEntity = memberRepository.findOne(5);
+        System.out.println(memberEntity);
+    }
+
+    @Test
+    public void test_repository_saveAndFlush() {
+        SpringMember member = new SpringMember(5, "Lee555");
+        memberRepository.saveAndFlush(member); // 여기서 쿼리가 전송된다.
+        System.out.println("================");
+    }
+
+    @Test
     public void 전체삭제() {
         memberRepository.deleteAll();
         memberRepository.flush();
@@ -99,6 +119,27 @@ public class SpringDataJPATest {
         SpringMember member1 = memberRepository.readByName("Lee0");
         SpringMember member2 = memberRepository.readByName("Lee0");
         assertThat(member1, is(sameInstance(member2)));
+    }
+
+    @Test
+    public void testParamIsNull() {
+        List<SpringMember> result = memberRepository.findAll();
+        assertThat(200, is(result.size()));
+
+        SpringMember springMemberBuild1 = SpringMember.builder().name(null).build();
+        List<SpringMember> result1 = memberRepository.findAll(Example.of(springMemberBuild1));
+        assertThat(200, is(result1.size()));
+
+        SpringMember springMemberBuild2 = SpringMember.builder().name("Lee0").build();
+        List<SpringMember> result2 = memberRepository.findAll(Example.of(springMemberBuild2));
+        assertThat(1, is(result2.size()));
+
+        ExampleMatcher matcher = ExampleMatcher.matchingAll()
+            .withMatcher("name", contains().ignoreCase());
+
+        SpringMember springMemberBuild3 = SpringMember.builder().name("Lee0").build();
+        List<SpringMember> result3 = memberRepository.findAll(Example.of(springMemberBuild3, matcher));
+        assertThat(1, is(result3.size()));
     }
 
 
