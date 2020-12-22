@@ -1,8 +1,11 @@
 package com.kyu.boot.jpa.springdata;
 
 import com.kyu.boot.jpa.springdata.dto.SpringMemberDTO;
+import com.kyu.boot.jpa.springdata.entity.Partners;
+import com.kyu.boot.jpa.springdata.entity.PartnersStatus;
 import com.kyu.boot.jpa.springdata.entity.SpringMember;
 import com.kyu.boot.jpa.springdata.repo.MemberRepository;
+import com.kyu.boot.jpa.springdata.repo.PartnersRepository;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -26,6 +29,7 @@ import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
 import javax.transaction.Transactional;
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -53,6 +57,9 @@ public class SpringDataJPATest {
 
     @Autowired
     private SpringDataEmpRepository springDataEmpRepository;
+
+    @Autowired
+    private PartnersRepository partnersRepository;
 
     /**
      * 각각의 @Test메서드 실행 전 호출된다.
@@ -242,8 +249,31 @@ public class SpringDataJPATest {
 
     @Test
     public void test_search_nam_and_orderBy() {
-        List<SpringMember> list = memberRepository.findTop3ByNameLike("Lee");
+        List<SpringMember> list = memberRepository.findTop2ByNameLikeOrderBySeqDesc("Lee%");
+        System.out.println("===============================");
         list.forEach(System.out::println);
+        System.out.println("===============================");
+    }
+
+    @Test
+    public void test_search_top1_orderBy() {
+        SpringMember springMember = memberRepository.findTop1ByNameOrderBySeqDesc("Lee2");
+        System.out.println("===============================");
+        System.out.println(springMember);
+        System.out.println("===============================");
+    }
+
+    @Test
+    public void test_partners_entity() {
+        Partners partners1 = new Partners(1, "장난감1", PartnersStatus.STANDBY);
+        Partners partners2 = new Partners(2, "장난감2", PartnersStatus.DONE);
+        Partners partners3 = new Partners(3, "장난감3", PartnersStatus.STANDBY);
+        partnersRepository.save(Arrays.asList(partners1, partners2, partners3));
+
+        Partners entity = partnersRepository.findTop1ByStatusOrderBySeqDesc(PartnersStatus.STANDBY);
+        System.out.println("==================================");
+        System.out.println(entity);
+        System.out.println("==================================");
     }
 
 

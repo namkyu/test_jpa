@@ -26,7 +26,9 @@ public interface MemberRepository extends JpaRepository<SpringMember, Integer> {
 
     List<SpringMember> findAllByOrderBySeqDesc();
 
-    List<SpringMember> findTop10ByNameLikeOrderBySeqDesc(String name);
+    List<SpringMember> findTop2ByNameLikeOrderBySeqDesc(String name);
+
+    SpringMember findTop1ByNameOrderBySeqDesc(String name);
 
     SpringMember readBySeq(int seq);
 
